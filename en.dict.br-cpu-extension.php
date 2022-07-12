@@ -12,7 +12,7 @@ Dict::Add('EN US', 'English', 'English', array(
     'Class:Server/Attribute:cpu_sockets' => 'Sockets',
     'Class:Server/Attribute:cpu_sockets+' => 'Number of physical sockets / Number of CPUs in this Server',
     'Class:Server/Attribute:cpu_cores' => 'Cores',
-    'Class:Server/Attribute:cpu_sockets+' => 'Number of Cores per CPU',
+    'Class:Server/Attribute:cpu_cores+' => 'Number of Cores per CPU',
     'Class:Server/Attribute:cpu_count' => 'Total Cores',
     'Class:Server/Attribute:cpu_count+' => 'Number of total Cores in this Server (Sockets * Cores)',
 ));

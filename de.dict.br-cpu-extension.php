@@ -12,7 +12,7 @@ Dict::Add('DE DE', 'German', 'Deutsch', array(
     'Class:Server/Attribute:cpu_sockets' => 'Sockel',
     'Class:Server/Attribute:cpu_sockets+' => 'Anzahl der Sockel / CPUs in diesem Server',
     'Class:Server/Attribute:cpu_cores' => 'Kerne',
-    'Class:Server/Attribute:cpu_sockets+' => 'Anzahl der Kerne je CPU',
+    'Class:Server/Attribute:cpu_cores+' => 'Anzahl der Kerne je CPU',
     'Class:Server/Attribute:cpu_count' => 'Summe Kerne',
     'Class:Server/Attribute:cpu_count+' => 'Anzahl aller CPU-Kerne in diesem Server (Sockel * Kerne)',
 ));
