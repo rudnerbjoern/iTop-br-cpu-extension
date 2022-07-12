@@ -9,10 +9,10 @@
 
 Dict::Add('EN US', 'English', 'English', array(
     // - Server
-    'Class:Server/Attribute:cpu_sockets' => 'Sockets',
+    'Class:Server/Attribute:cpu_sockets' => 'CPU Sockets',
     'Class:Server/Attribute:cpu_sockets+' => 'Number of physical sockets / Number of CPUs in this Server',
-    'Class:Server/Attribute:cpu_cores' => 'Cores',
+    'Class:Server/Attribute:cpu_cores' => 'CPU Cores',
     'Class:Server/Attribute:cpu_cores+' => 'Number of Cores per CPU',
-    'Class:Server/Attribute:cpu_count' => 'Total Cores',
+    'Class:Server/Attribute:cpu_count' => 'Total CPU Cores',
     'Class:Server/Attribute:cpu_count+' => 'Number of total Cores in this Server (Sockets * Cores)',
 ));
