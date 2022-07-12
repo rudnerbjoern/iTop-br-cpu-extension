@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<itop_design xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.7">
+    <!--
+    * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
+    * @version     2022-03-16
+    -->
+    <classes>
+        <class id="Server" _delta="must_exist">
+            <fields>
+                <field id="cpu_sockets" xsi:type="AttributeInteger" _delta="define">
+                    <sql>cpu_sockets</sql>
+                    <is_null_allowed>true</is_null_allowed>
+                </field>
+                <field id="cpu_cores" xsi:type="AttributeInteger" _delta="define">
+                    <sql>cpu_cores</sql>
+                    <is_null_allowed>true</is_null_allowed>
+                </field>
+                <field id="cpu_count" xsi:type="AttributeString" _delta="define">
+                    <sql>cpu_count</sql>
+                    <is_null_allowed>true</is_null_allowed>
+                </field>
+            </fields>
+            <methods>
+                <method id="GetAttributeFlags" _delta="define">
+                    <static>false</static>
+                    <access>public</access>
+                    <type>Overload-DBObject</type>
+                    <code>
+                        <![CDATA[public function GetAttributeFlags($sAttCode, &$aReasons = array(), $sTargetState = '')
+					    {
+						    // Force the computed field to be read-only, preventing it to be written
+						    if (($sAttCode == 'cpu_count'))
+							    return(OPT_ATT_READONLY | parent::GetAttributeFlags($sAttCode, $aReasons, $sTargetState));
+						    return parent::GetAttributeFlags($sAttCode, $aReasons, $sTargetState);
+					    }]]>
+                    </code>
+                </method>
+                <method id="GetInitialStateAttributeFlags" _delta="define">
+                    <static>false</static>
+                    <access>public</access>
+                    <type>Overload-DBObject</type>
+                    <code>
+                        <![CDATA[public function GetInitialStateAttributeFlags($sAttCode, &$aReasons = array())
+					    {
+						    // Hide the calculated field in object creation form
+						    if (($sAttCode == 'cpu_count'))
+							    return(OPT_ATT_HIDDEN | parent::GetInitialStateAttributeFlags($sAttCode, $aReasons));
+						    return parent::GetInitialStateAttributeFlags($sAttCode, $aReasons);
+					    }]]>
+                    </code>
+                </method>
+                <method id="OnInsert" _delta="define">
+                    <static>false</static>
+                    <access>public</access>
+                    <type>Overload-DBObject</type>
+                    <code>
+                        <![CDATA[public function OnInsert()
+					    {
+						    $this->SetCpuCount();
+                            parent::OnInsert();
+					    }]]>
+                    </code>
+                </method>
+                <method id="OnUpdate" _delta="define">
+                    <static>false</static>
+                    <access>public</access>
+                    <type>Overload-DBObject</type>
+                    <code>
+                        <![CDATA[public function OnUpdate()
+					    {
+                            $this->SetCpuCount();
+                            parent::OnUpdate();
+					    }]]>
+                    </code>
+                </method>
+                <method id="SetCpuCount" _delta="define">
+                    <static>false</static>
+                    <access>public</access>
+                    <type>Overload-DBObject</type>
+                    <code>
+                        <![CDATA[public function SetCpuCount()
+					    {
+                            // read the new value of the CPU
+                            $iSockets = $this->Get('cpu_sockets');
+                            $iCores = $this->Get('cpu_cores');
+                            $iTotal = $iSockets * $iCores;
+
+                            $this->Set('cpu_count', $iTotal);
+					    }]]>
+                    </code>
+                </method>
+            </methods>
+            <presentation>
+                <details>
+                    <items>
+                        <item id="col:col1">
+                            <rank>120</rank>
+                            <items>
+                                <item id="fieldset:Server:moreinfo">
+                                    <rank>20</rank>
+                                    <items>
+                                        <item id="cpu">
+                                            <rank>60</rank>
+                                        </item>
+                                        <item id="cpu_sockets" _delta="define">
+                                            <rank>61</rank>
+                                        </item>
+                                        <item id="cpu_cores" _delta="define">
+                                            <rank>62</rank>
+                                        </item>
+                                        <item id="cpu_count" _delta="define">
+                                            <rank>63</rank>
+                                        </item>
+                                    </items>
+                                </item>
+                            </items>
+                        </item>
+                    </items>
+                </details>
+            </presentation>
+        </class>
+    </classes>
+</itop_design>
