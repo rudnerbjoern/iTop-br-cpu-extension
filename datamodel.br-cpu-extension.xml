@@ -2,7 +2,7 @@
 <itop_design xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.7">
     <!--
     * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
-    * @version     2023-03-03
+    * @version     2023-06-01
     -->
     <classes>
         <class id="Server" _delta="must_exist">
@@ -120,26 +120,4 @@
             </presentation>
         </class>
     </classes>
-    <dictionaries>
-        <dictionary id="EN US">
-            <entries>
-                <entry id="Class:Server/Attribute:cpu_sockets" _delta="define">CPU Sockets</entry>
-                <entry id="Class:Server/Attribute:cpu_sockets+" _delta="define">Number of physical sockets / Number of CPUs in this Server</entry>
-                <entry id="Class:Server/Attribute:cpu_cores" _delta="define">CPU Cores</entry>
-                <entry id="Class:Server/Attribute:cpu_cores+" _delta="define">Number of Cores per CPU</entry>
-                <entry id="Class:Server/Attribute:cpu_count" _delta="define">Total CPU Cores</entry>
-                <entry id="Class:Server/Attribute:cpu_count+" _delta="define">Number of total Cores in this Server (Sockets * Cores)</entry>
-            </entries>
-        </dictionary>
-        <dictionary id="DE DE">
-            <entries>
-                <entry id="Class:Server/Attribute:cpu_sockets" _delta="define">CPU Sockel</entry>
-                <entry id="Class:Server/Attribute:cpu_sockets+" _delta="define">Anzahl der Sockel / CPUs in diesem Server</entry>
-                <entry id="Class:Server/Attribute:cpu_cores" _delta="define">CPU Kerne</entry>
-                <entry id="Class:Server/Attribute:cpu_cores+" _delta="define">Anzahl der Kerne je CPU</entry>
-                <entry id="Class:Server/Attribute:cpu_count" _delta="define">Summe CPU Kerne</entry>
-                <entry id="Class:Server/Attribute:cpu_count+" _delta="define">Anzahl aller CPU-Kerne in diesem Server (Sockel * Kerne)</entry>
-            </entries>
-        </dictionary>
-    </dictionaries>
 </itop_design>
