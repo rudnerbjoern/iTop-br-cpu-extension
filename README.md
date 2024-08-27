@@ -1,6 +1,6 @@
 # iTop-br-cpu-extension
 
-Copyright (c) 2022-2023 Björn Rudner
+Copyright (c) 2022-2024 Björn Rudner
 [![License](https://img.shields.io/github/license/rudnerbjoern/iTop-br-cpu-extension)](https://github.com/rudnerbjoern/iTop-br-cpu-extension/blob/main/LICENSE)
 
 ## What?
@@ -27,4 +27,4 @@ Add the following fields:
 
 ## iTop Compatibility
 
-The extension was tested on iTop 2.7.11
+The extension was tested on iTop 2.7.11 and 3.1.1
