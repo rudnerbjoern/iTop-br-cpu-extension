@@ -24,3 +24,7 @@ Add the following fields:
 * CPU Sockets - Number of physical sockets / Number of CPUs in this Server
 * CPU Cores - Number of Cores per CPU
 * CPU Count (calculated) - Number of total Cores in this Server (Sockets * Cores)
+
+## iTop Compatibility
+
+The extension was tested on iTop 2.7.11

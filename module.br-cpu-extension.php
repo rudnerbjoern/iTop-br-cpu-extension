@@ -2,7 +2,7 @@
 
 /**
  * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
- * @version     2023-06-01
+ * @version     2024-08-27
  *
  * iTop module definition file
  */
