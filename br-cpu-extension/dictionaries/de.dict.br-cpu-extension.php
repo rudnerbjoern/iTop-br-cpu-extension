@@ -3,7 +3,7 @@
 /**
  * @copyright   Copyright (C) 2023 Björn Rudner
  * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
- * @version     2023-06-01
+ * @version     2023-09-11
  *
  * Localized data
  */
