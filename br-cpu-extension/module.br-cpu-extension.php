@@ -2,14 +2,14 @@
 
 /**
  * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
- * @version     2024-09-02
+ * @version     2023-09-11
  *
  * iTop module definition file
  */
 
 SetupWebPage::AddModule(
     __FILE__, // Path to the current file, all other file names are relative to the directory containing this file
-    'br-cpu-extension/0.2.1',
+    'br-cpu-extension/3.1.3',
     array(
         // Identification
         //
@@ -19,16 +19,15 @@ SetupWebPage::AddModule(
         // Setup
         //
         'dependencies' => array(
-            '(itop-config-mgmt/2.5.0 & itop-config-mgmt/<3.0.0)||itop-structure/3.0.0',
+            'itop-config-mgmt/3.1.0',
+            'itop-datacenter-mgmt/3.1.0',
         ),
         'mandatory' => false,
         'visible' => true,
 
         // Components
         //
-        'datamodel' => array(
-            'model.br-cpu-extension.php',
-        ),
+        'datamodel' => array(),
         'webservice' => array(),
         'data.struct' => array(
             // add your 'structure' definition XML files here,
