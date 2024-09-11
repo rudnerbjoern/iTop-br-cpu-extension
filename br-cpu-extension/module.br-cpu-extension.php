@@ -2,14 +2,14 @@
 
 /**
  * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
- * @version     2024-09-02
+ * @version     2024-09-11
  *
  * iTop module definition file
  */
 
 SetupWebPage::AddModule(
     __FILE__, // Path to the current file, all other file names are relative to the directory containing this file
-    'br-cpu-extension/0.2.1',
+    'br-cpu-extension/2.7.3',
     array(
         // Identification
         //
