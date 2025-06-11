@@ -8,6 +8,7 @@
  * Localized data
  */
 
+/** @disregard P1009 Undefined type Dict */
 Dict::Add('DE DE', 'German', 'Deutsch', array(
     'Class:Server/Attribute:cpu_sockets' => 'CPU Sockel',
     'Class:Server/Attribute:cpu_sockets+' => 'Anzahl der Sockel / CPUs in diesem Server',

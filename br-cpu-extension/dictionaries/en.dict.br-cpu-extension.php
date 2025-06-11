@@ -8,6 +8,7 @@
  * Localized data
  */
 
+/** @disregard P1009 Undefined type Dict */
 Dict::Add('EN US', 'English', 'English', array(
     'Class:Server/Attribute:cpu_sockets' => 'CPU Sockets',
     'Class:Server/Attribute:cpu_sockets+' => 'Number of physical sockets / Number of CPUs in this Server',
