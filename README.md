@@ -1,6 +1,6 @@
 # iTop-br-cpu-extension
 
-Copyright (c) 2022-2024 Björn Rudner
+Copyright (c) 2023-2025 Björn Rudner
 [![License](https://img.shields.io/github/license/rudnerbjoern/iTop-br-cpu-extension)](https://github.com/rudnerbjoern/iTop-br-cpu-extension/blob/main/LICENSE)
 
 ## What?
@@ -29,8 +29,8 @@ Add the following fields:
 
 The branch [2.7](https://github.com/rudnerbjoern/iTop-br-cpu-extension/tree/itop/2.7) is compatible to iTop 2.7 and iTop 3.1.
 
-The branch [main](https://github.com/rudnerbjoern/iTop-br-cpu-extension/tree/main) will only be compatible to iTop 3.1.
+The branch [main](https://github.com/rudnerbjoern/iTop-br-cpu-extension/tree/main) will only be compatible to iTop 3.2.
 
 Versions starting with 2.7.x are kept compatible to iTop 2.7
 
-The extension was tested on iTop 2.7.10 and 3.1.1
+The extension was tested on iTop 2.7.10 and 3.2.1
