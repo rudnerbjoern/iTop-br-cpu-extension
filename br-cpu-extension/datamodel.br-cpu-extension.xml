@@ -21,51 +21,51 @@
                 </field>
             </fields>
             <event_listeners>
-                <event_listener id="EvtSetInitialAttributeFlagsHideCpuCount">
+                <event_listener id="OnServerSetInitialAttributesFlagsHideCpuCount">
                     <event>EVENT_DB_SET_INITIAL_ATTRIBUTES_FLAGS</event>
                     <rank>10</rank>
-                    <callback>EvtSetInitialAttributeFlagsHideCpuCount</callback>
+                    <callback>OnServerSetInitialAttributesFlagsHideCpuCount</callback>
                 </event_listener>
-                <event_listener id="EvtSetAttributeFlagsReadOnlyCpuCount">
+                <event_listener id="OnServerSetAttributesFlagsReadOnlyCpuCount">
                     <event>EVENT_DB_SET_ATTRIBUTES_FLAGS</event>
                     <rank>10</rank>
-                    <callback>EvtSetAttributeFlagsReadOnlyCpuCount</callback>
+                    <callback>OnServerSetAttributesFlagsReadOnlyCpuCount</callback>
                 </event_listener>
-                <event_listener id="EvtBeforeWriteSetCpuCount">
+                <event_listener id="OnServerBeforeWriteSetCpuCount">
                     <event>EVENT_DB_BEFORE_WRITE</event>
                     <rank>10</rank>
-                    <callback>EvtBeforeWriteSetCpuCount</callback>
+                    <callback>OnServerBeforeWriteSetCpuCount</callback>
                 </event_listener>
             </event_listeners>
             <methods>
-                <method id="EvtSetInitialAttributeFlagsHideCpuCount">
+                <method id="OnServerSetInitialAttributesFlagsHideCpuCount">
                     <static>false</static>
                     <access>public</access>
                     <type>EventListener</type>
                     <code><![CDATA[
-    public function EvtSetInitialAttributeFlagsHideCpuCount(Combodo\iTop\Service\Events\EventData $oEventData)
+    public function OnServerSetInitialAttributesFlagsHideCpuCount(Combodo\iTop\Service\Events\EventData $oEventData)
     {
         $this->ForceInitialAttributeFlags('cpu_count', OPT_ATT_HIDDEN);
     }
   ]]></code>
                 </method>
-                <method id="EvtSetAttributeFlagsReadOnlyCpuCount">
+                <method id="OnServerSetAttributesFlagsReadOnlyCpuCount">
                     <static>false</static>
                     <access>public</access>
                     <type>EventListener</type>
                     <code><![CDATA[
-    public function EvtSetAttributeFlagsReadOnlyCpuCount(Combodo\iTop\Service\Events\EventData $oEventData)
+    public function OnServerSetAttributesFlagsReadOnlyCpuCount(Combodo\iTop\Service\Events\EventData $oEventData)
     {
         $this->ForceAttributeFlags('cpu_count', OPT_ATT_READONLY);
     }
   ]]></code>
                 </method>
-                <method id="EvtBeforeWriteSetCpuCount">
+                <method id="OnServerBeforeWriteSetCpuCount">
                     <static>false</static>
                     <access>public</access>
                     <type>EventListener</type>
                     <code><![CDATA[
-    public function EvtBeforeWriteSetCpuCount(Combodo\iTop\Service\Events\EventData $oEventData)
+    public function OnServerBeforeWriteSetCpuCount(Combodo\iTop\Service\Events\EventData $oEventData)
     {
         $this->SetCpuCount();
     }
