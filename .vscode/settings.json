@@ -1,8 +1,12 @@
 {
     "cSpell.words": [
+        "Combodo",
         "datacenter",
         "fieldset",
         "mgmt",
         "moreinfo"
-    ]
+    ],
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "modificationsIfAvailable",
+    "editor.formatOnPaste": true
 }
