@@ -2,7 +2,7 @@
 <itop_design version="3.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://rudnerbjoern.github.io/iTop-schema/3.2/itop_design.xsd">
     <!--
     * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
-    * @version     2025-06-12
+    * @version     2026-01-23
     -->
     <classes>
         <class id="Server" _delta="must_exist">
@@ -18,34 +18,43 @@
                 <field id="cpu_count" xsi:type="AttributeString" _delta="define">
                     <sql>cpu_count</sql>
                     <is_null_allowed>true</is_null_allowed>
+                    <dependencies>
+                        <attribute id="cpu_sockets" />
+                        <attribute id="cpu_cores" />
+                    </dependencies>
                 </field>
             </fields>
             <event_listeners>
-                <event_listener id="OnServerSetInitialAttributesFlagsHideCpuCount">
+                <event_listener id="OnServerSetInitialAttributesFlagsReadOnlyCpuCount">
                     <event>EVENT_DB_SET_INITIAL_ATTRIBUTES_FLAGS</event>
                     <rank>10</rank>
-                    <callback>OnServerSetInitialAttributesFlagsHideCpuCount</callback>
+                    <callback>OnServerSetInitialAttributesFlagsReadOnlyCpuCount</callback>
                 </event_listener>
                 <event_listener id="OnServerSetAttributesFlagsReadOnlyCpuCount">
                     <event>EVENT_DB_SET_ATTRIBUTES_FLAGS</event>
                     <rank>10</rank>
                     <callback>OnServerSetAttributesFlagsReadOnlyCpuCount</callback>
                 </event_listener>
-                <event_listener id="OnServerBeforeWriteSetCpuCount">
-                    <event>EVENT_DB_BEFORE_WRITE</event>
+                <event_listener id="OnServerComputeCpuCount">
+                    <event>EVENT_DB_COMPUTE_VALUES</event>
                     <rank>10</rank>
-                    <callback>OnServerBeforeWriteSetCpuCount</callback>
+                    <callback>OnServerComputeCpuCount</callback>
                 </event_listener>
             </event_listeners>
             <methods>
-                <method id="OnServerSetInitialAttributesFlagsHideCpuCount">
+                <method id="OnServerSetInitialAttributesFlagsReadOnlyCpuCount">
                     <static>false</static>
                     <access>public</access>
                     <type>EventListener</type>
                     <code><![CDATA[
-    public function OnServerSetInitialAttributesFlagsHideCpuCount(Combodo\iTop\Service\Events\EventData $oEventData)
+    /**
+    * Sets the cpu_count attribute to read-only when the object is initialized.
+    * This prevents users from entering or modifying the value manually
+    * when creating a new Server object.
+    */
+    public function OnServerSetInitialAttributesFlagsReadOnlyCpuCount(Combodo\iTop\Service\Events\EventData $oEventData)
     {
-        $this->ForceInitialAttributeFlags('cpu_count', OPT_ATT_HIDDEN);
+        $this->ForceInitialAttributeFlags('cpu_count', OPT_ATT_READONLY);
     }
   ]]></code>
                 </method>
@@ -54,18 +63,27 @@
                     <access>public</access>
                     <type>EventListener</type>
                     <code><![CDATA[
+    /**
+    * Enforces the cpu_count attribute to remain read-only at all times.
+    * The value is derived automatically and must not be edited by users.
+    */
     public function OnServerSetAttributesFlagsReadOnlyCpuCount(Combodo\iTop\Service\Events\EventData $oEventData)
     {
         $this->ForceAttributeFlags('cpu_count', OPT_ATT_READONLY);
     }
   ]]></code>
                 </method>
-                <method id="OnServerBeforeWriteSetCpuCount">
+                <method id="OnServerComputeCpuCount">
                     <static>false</static>
                     <access>public</access>
                     <type>EventListener</type>
                     <code><![CDATA[
-    public function OnServerBeforeWriteSetCpuCount(Combodo\iTop\Service\Events\EventData $oEventData)
+    /**
+    * Computes derived attribute values for the Server object.
+    * This listener is triggered whenever dependent attributes change
+    * or when the object is refreshed.
+    */
+    public function OnServerComputeCpuCount(Combodo\iTop\Service\Events\EventData $oEventData)
     {
         $this->SetCpuCount();
     }
@@ -76,14 +94,41 @@
                     <access>public</access>
                     <type>Overload-DBObject</type>
                     <code><![CDATA[
+    /**
+    * Computes the total CPU count based on sockets and cores.
+    *
+    * cpu_count is a derived, read-only attribute.
+    * It is stored as a string on purpose to allow future formatting
+    * (e.g. "2×12 (24)", "n/a", etc.).
+    *
+    * Rules:
+    * - If either cpu_sockets or cpu_cores is NULL, cpu_count is set to NULL
+    * - If values are invalid (<= 0), cpu_count is set to NULL
+    * - Otherwise: cpu_count = cpu_sockets * cpu_cores
+    */
     public function SetCpuCount()
     {
-        // read the new value of the CPU
         $iSockets = $this->Get('cpu_sockets');
-        $iCores = $this->Get('cpu_cores');
-        $iTotal = $iSockets * $iCores;
+        $iCores   = $this->Get('cpu_cores');
 
-        $this->Set('cpu_count', $iTotal);
+        // If one of the required values is missing, the CPU count is unknown
+        if ($iSockets === null || $iCores === null) {
+            $this->Set('cpu_count', null);
+            return;
+        }
+
+        // Normalize values to integers
+        $iSockets = (int) $iSockets;
+        $iCores   = (int) $iCores;
+
+        // Reject invalid values
+        if ($iSockets <= 0 || $iCores <= 0) {
+            $this->Set('cpu_count', null);
+            return;
+        }
+
+        // Store the computed value as string (by design)
+        $this->Set('cpu_count', (string) ($iSockets * $iCores));
     }
   ]]></code>
                 </method>
