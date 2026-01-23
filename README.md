@@ -3,34 +3,70 @@
 Copyright (c) 2023-2025 Björn Rudner
 [![License](https://img.shields.io/github/license/rudnerbjoern/iTop-br-cpu-extension)](https://github.com/rudnerbjoern/iTop-br-cpu-extension/blob/main/LICENSE)
 
-## What?
+## Overview
 
-Save information on sockets and cores of physical CPUs.
+This extension adds structured CPU information to the **Server** class in iTop.
 
-This information can be useful for reporting licensing information.
+It allows storing:
 
-You can synchronize this information by customizing the [vSphere data collector](https://github.com/Combodo/itop-data-collector-vsphere).
+- the number of physical CPU sockets
+- the number of cores per CPU
+- a calculated total CPU core count
 
-## How?
+The calculated value is derived automatically and is read-only.
 
-### Screenshot
+This information is especially useful for:
+
+- license compliance and reporting
+- capacity planning
+- infrastructure documentation
+
+## Features
+
+- Extends the **Server** class
+- Adds structured CPU attributes
+- Automatically computes total CPU cores
+- Uses `EVENT_DB_COMPUTE_VALUES` for clean derived-field handling
+- `cpu_count` is read-only and cannot be edited manually
+- Compatible with data collectors (e.g. vSphere)
+
+## Fields Added to Class: Server
+
+| Field           | Description                                                             |
+| --------------- | ----------------------------------------------------------------------- |
+| **CPU Sockets** | Number of physical CPU sockets in the server                            |
+| **CPU Cores**   | Number of cores per physical CPU                                        |
+| **CPU Count**   | Total number of CPU cores (`sockets × cores`), calculated automatically |
+
+`cpu_count` is stored as a string by design to allow future formatting (e.g. `2×12 (24)` or `n/a`).
+
+## How It Works
+
+- `cpu_count` is defined as a derived attribute
+- Dependencies are declared on `cpu_sockets` and `cpu_cores`
+- The value is calculated using `EVENT_DB_COMPUTE_VALUES`
+- The attribute is enforced as read-only using attribute flags
+- If required values are missing or invalid, `cpu_count` is set to `NULL`
+
+## Screenshot
 
 ![Server: More information](Screenshots/ServerMoreInformation.png)
 
-### Class: Server
+## Integration with Data Collectors
 
-Add the following fields:
-
-* CPU Sockets - Number of physical sockets / Number of CPUs in this Server
-* CPU Cores - Number of Cores per CPU
-* CPU Count (calculated) - Number of total Cores in this Server (Sockets * Cores)
+The CPU socket and core information can be synchronized automatically by extending the
+[vSphere Data Collector](https://github.com/Combodo/itop-data-collector-vsphere).
 
 ## iTop Compatibility
 
-The branch [2.7](https://github.com/rudnerbjoern/iTop-br-cpu-extension/tree/itop/2.7) is compatible to iTop 2.7 and iTop 3.1.
+| Branch     | Compatible iTop Versions |
+| ---------- | ------------------------ |
+| `itop/2.7` | iTop 2.7, iTop 3.1       |
+| `main`     | iTop 3.2 only            |
 
-The branch [main](https://github.com/rudnerbjoern/iTop-br-cpu-extension/tree/main) will only be compatible to iTop 3.2.
+Versions starting with `2.7.x` are kept compatible with iTop 2.7.
 
-Versions starting with 2.7.x are kept compatible to iTop 2.7
+## Tested Versions
 
-The extension was tested on iTop 2.7.10 and 3.2.1
+- iTop 2.7.10
+- iTop 3.2.2
