@@ -1,6 +1,6 @@
 # iTop-br-cpu-extension
 
-Copyright (c) 2023-2025 Björn Rudner
+Copyright (c) 2023-2026 Björn Rudner
 [![License](https://img.shields.io/github/license/rudnerbjoern/iTop-br-cpu-extension)](https://github.com/rudnerbjoern/iTop-br-cpu-extension/blob/main/LICENSE)
 
 ## Overview
