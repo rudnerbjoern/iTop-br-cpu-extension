@@ -3,8 +3,10 @@
         "Combodo",
         "datacenter",
         "fieldset",
+        "itop",
         "mgmt",
-        "moreinfo"
+        "moreinfo",
+        "Rudner"
     ],
     "editor.formatOnSave": true,
     "editor.formatOnSaveMode": "modificationsIfAvailable",
