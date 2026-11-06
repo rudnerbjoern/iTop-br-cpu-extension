@@ -35,6 +35,11 @@ the successful `PR checks` result and publishes the merge commit as tag `vX.Y.Z`
 ZIP package, and GitHub Release. Closing an unmerged PR, merging another branch
 prefix, or merging a fork's PR does not publish a release.
 
+The ZIP contains a single top-level `br-cpu-extension/` folder. Inside it,
+`extension.xml`, `LICENSE`, and the `br-cpu-extension/` module folder retain their
+project-relative structure. Extracting into iTop's `extensions/` directory keeps
+all package files under `extensions/br-cpu-extension/`.
+
 Each release includes `br-cpu-extension-vX.Y.Z.zip.sha256` alongside its ZIP.
 Download both into the same directory and run
 `sha256sum --check br-cpu-extension-vX.Y.Z.zip.sha256` to verify the package.

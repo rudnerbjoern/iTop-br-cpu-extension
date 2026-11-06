@@ -2,7 +2,8 @@
 
 1. Download the `br-cpu-extension-vX.Y.Z.zip` asset attached to this release.
 2. Extract its contents into your iTop installation's `extensions/` directory,
-   preserving the included folder structure.
+   preserving the included folder structure. The package creates a single
+   `extensions/br-cpu-extension/` folder containing the manifest and module.
 3. Run iTop setup and select **Physical CPU enhancements** to activate the extension.
 
 ### Verify your download
