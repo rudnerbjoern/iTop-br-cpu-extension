@@ -78,6 +78,10 @@ Treat MUST and MUST NOT as mandatory requirements.
 
 - You MUST read `.github/commit-message-instructions.md` and
   `.github/pull_request_template.md` before generating pull request content.
+- You MUST use the repository's `.github/pull_request_template.md` as the template
+  for every pull request you create or update. You MUST preserve its applicable
+  section headings and fill them with information about the actual change.
+  You MUST NOT replace it with a generic or independently invented PR template.
 - You MUST inspect the complete pull request diff against `main`.
 - You MUST target `main` and use the same header format and validation rules for
   the pull request title as for commit messages.
