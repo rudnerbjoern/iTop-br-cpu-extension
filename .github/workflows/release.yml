@@ -2,26 +2,38 @@ name: Release
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    types: [closed]
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
-  group: release
+  group: release-${{ github.event.pull_request.merge_commit_sha || github.sha }}
   cancel-in-progress: false
 
 jobs:
   prepare:
     name: Scan and validate release
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'release/'))
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     outputs:
       tag: ${{ steps.version.outputs.tag }}
+      sha: ${{ steps.version.outputs.sha }}
     steps:
       - name: Check out release commit
         uses: actions/checkout@v7
         with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -32,8 +44,36 @@ jobs:
           GITLEAKS_ENABLE_COMMENTS: 'false'
           GITLEAKS_VERSION: '8.30.1'
 
+      - name: Verify successful PR completion check
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        shell: python
+        run: |
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+
+          event = json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+          pr = event['pull_request']
+          state = json.loads(subprocess.check_output([
+              'gh', 'pr', 'view', str(pr['number']), '--repo', os.environ['GH_REPO'],
+              '--json', 'state,headRefOid,statusCheckRollup',
+          ], text=True))
+          if state['state'] != 'MERGED' or state['headRefOid'] != pr['head']['sha']:
+              raise SystemExit('PR state or head commit does not match the merged event')
+          checks = [check for check in state['statusCheckRollup']
+                    if check.get('workflowName') == 'CI' and check.get('name') == 'PR checks'
+                    and check.get('conclusion') != 'SKIPPED']
+          if not checks or any(check.get('conclusion') != 'SUCCESS' for check in checks):
+              raise SystemExit('The merged PR must have a successful CI / PR checks result')
+
       - name: Validate release version
         id: version
+        env:
+          RELEASE_BRANCH: ${{ github.event.pull_request.head.ref }}
         shell: python
         run: |
           import os
@@ -47,9 +87,16 @@ jobs:
           if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version):
               raise SystemExit('Expected an extension version in X.Y.Z format')
 
+          if os.environ.get('GITHUB_EVENT_NAME') == 'pull_request':
+              branch = os.environ['RELEASE_BRANCH']
+              if not re.fullmatch(r'release/((?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*))', branch):
+                  raise SystemExit('Expected a release/X.Y.Z branch')
+              if branch != f'release/{version}':
+                  raise SystemExit('Release branch must match the project version')
+
           module = Path('br-cpu-extension/module.br-cpu-extension.php').read_text()
-          match = re.search(r"'br-cpu-extension/([^']+)'", module)
-          if not match or match.group(1) != version:
+          versions = re.findall(r"'br-cpu-extension/([^']+)'", module)
+          if versions != [version]:
               raise SystemExit('Extension and module versions must match')
 
           tag = f'v{version}'
@@ -70,11 +117,14 @@ jobs:
 
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write(f'tag={tag}\n')
+              output.write('sha=' + subprocess.check_output(
+                  ['git', 'rev-parse', 'HEAD'], text=True
+              ).strip() + '\n')
 
   release:
     name: Create tag and release
     needs: prepare
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     permissions:
       contents: write
@@ -82,6 +132,7 @@ jobs:
       - name: Check out release commit
         uses: actions/checkout@v7
         with:
+          ref: ${{ needs.prepare.outputs.sha }}
           persist-credentials: false
 
       - name: Build release package
@@ -93,15 +144,19 @@ jobs:
             --output=".tmp/br-cpu-extension-${RELEASE_TAG}.zip" \
             HEAD -- \
             br-cpu-extension extension.xml LICENSE
+          cd .tmp
+          sha256sum "br-cpu-extension-${RELEASE_TAG}.zip" \
+            > "br-cpu-extension-${RELEASE_TAG}.zip.sha256"
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
-          RELEASE_SHA: ${{ github.sha }}
+          RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
         run: |
           package=".tmp/br-cpu-extension-${RELEASE_TAG}.zip"
+          checksum="${package}.sha256"
           # Listing releases also finds drafts left behind by interrupted uploads.
           gh api --paginate --slurp "repos/${GH_REPO}/releases?per_page=100" \
             > .tmp/releases.json
@@ -119,22 +174,34 @@ jobs:
                 exit 1
               fi
             fi
-            asset_state=$(jq -r --arg name "$(basename "$package")" \
-              '.assets[] | select(.name == $name) | .state' .tmp/release.json)
-            if [ "$asset_state" = "uploaded" ]; then
-              echo "Release package is already uploaded; nothing to do."
-            elif [ -n "$asset_state" ]; then
-              # Replace an incomplete upload left behind by a failed attempt.
-              gh release upload "$RELEASE_TAG" "$package" --clobber
-            else
-              gh release upload "$RELEASE_TAG" "$package"
-            fi
+            for asset in "$package" "$checksum"; do
+              asset_name=$(basename "$asset")
+              asset_state=$(jq -r --arg name "$asset_name" \
+                '.assets[] | select(.name == $name) | .state' .tmp/release.json)
+              if [ "$asset_state" = "uploaded" ]; then
+                # Never publish a checksum for a different existing package.
+                mkdir -p .tmp/existing-assets
+                gh release download "$RELEASE_TAG" --pattern "$asset_name" \
+                  --dir .tmp/existing-assets --clobber
+                if ! cmp --silent "$asset" ".tmp/existing-assets/$asset_name"; then
+                  echo "Existing release asset differs: $asset_name" >&2
+                  exit 1
+                fi
+                echo "Release asset is already uploaded and matches: $asset_name"
+              elif [ -n "$asset_state" ]; then
+                # Replace an incomplete upload left behind by a failed attempt.
+                gh release upload "$RELEASE_TAG" "$asset" --clobber
+              else
+                gh release upload "$RELEASE_TAG" "$asset"
+              fi
+            done
             if [ "$is_draft" = "true" ]; then
               gh release edit "$RELEASE_TAG" --draft=false
             fi
           else
-            gh release create "$RELEASE_TAG" "$package" \
+            gh release create "$RELEASE_TAG" "$package" "$checksum" \
               --target "$RELEASE_SHA" \
               --title "$RELEASE_TAG" \
+              --notes-file .github/release-notes.md \
               --generate-notes
           fi

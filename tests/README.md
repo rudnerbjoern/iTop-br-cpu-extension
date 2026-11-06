@@ -32,6 +32,8 @@ For every PR targeting `main`, CI sets up PHP 8.3 with DOM and SimpleXML,
 downloads both schemas into `.tmp/schemas`, and runs the same command.
 The required `PR checks` job also requires this test job to succeed; a schema
 download failure fails the job. Push-only runs continue to run Gitleaks only.
+For `release/*` PRs, CI also validates the `release/X.Y.Z` branch name against
+the manifest and module versions, and includes that result in `PR checks`.
 
 The tests execute `SetCpuCount` extracted from the local XML data model, using
 minimal `Get`/`Set` substitutes. They cover calculation, string output, numeric

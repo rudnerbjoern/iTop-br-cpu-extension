@@ -25,5 +25,23 @@ If tests fail, the command exits unsuccessfully and retains the version edits
 for inspection. Resolve failures before publishing. The script does not stage,
 commit, push, tag, or publish anything.
 
-Review the diff, commit on a task branch, and merge a PR into `main`. Then start
-the `Release` GitHub Actions workflow on `main` to publish the tag and ZIP.
+Use a release branch named `release/<version>`, for example `release/3.2.3`,
+for this preparation. Review the diff, commit on that branch, and open a PR
+into `main`. PR CI requires the branch version to match both project versions.
+
+Merging a `release/X.Y.Z` PR from this same repository automatically starts the
+`Release` workflow. The merge is the publication approval: the workflow verifies
+the successful `PR checks` result and publishes the merge commit as tag `vX.Y.Z`,
+ZIP package, and GitHub Release. Closing an unmerged PR, merging another branch
+prefix, or merging a fork's PR does not publish a release.
+
+Each release includes `br-cpu-extension-vX.Y.Z.zip.sha256` alongside its ZIP.
+Download both into the same directory and run
+`sha256sum --check br-cpu-extension-vX.Y.Z.zip.sha256` to verify the package.
+On recovery, already uploaded assets must match the regenerated files before
+the workflow adds a missing asset or publishes an interrupted draft.
+
+The `Release` workflow can still be started manually on `main` for recovery.
+Retry the original run to retain its exact release commit if `main` has advanced.
+Existing tags are reused only when they point to the same commit. Missing or
+incomplete uploads and interrupted drafts can be completed by a repeat run.
