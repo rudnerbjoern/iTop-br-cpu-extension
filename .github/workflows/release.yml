@@ -1,0 +1,140 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Scan and validate release
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - name: Check out release commit
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: 'false'
+          GITLEAKS_VERSION: '8.30.1'
+
+      - name: Validate release version
+        id: version
+        shell: python
+        run: |
+          import os
+          from pathlib import Path
+          import re
+          import subprocess
+          import xml.etree.ElementTree as ET
+
+          root = ET.parse('extension.xml').getroot()
+          version = root.findtext('version', '').strip()
+          if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version):
+              raise SystemExit('Expected an extension version in X.Y.Z format')
+
+          module = Path('br-cpu-extension/module.br-cpu-extension.php').read_text()
+          match = re.search(r"'br-cpu-extension/([^']+)'", module)
+          if not match or match.group(1) != version:
+              raise SystemExit('Extension and module versions must match')
+
+          tag = f'v{version}'
+          result = subprocess.run(
+              ['git', 'show-ref', '--verify', '--quiet', f'refs/tags/{tag}']
+          )
+          if result.returncode == 0:
+              tagged_commit = subprocess.check_output(
+                  ['git', 'rev-parse', f'{tag}^{{commit}}'], text=True
+              ).strip()
+              release_commit = subprocess.check_output(
+                  ['git', 'rev-parse', 'HEAD'], text=True
+              ).strip()
+              if tagged_commit != release_commit:
+                  raise SystemExit(f'Tag {tag} points to a different commit')
+          elif result.returncode != 1:
+              raise SystemExit('Could not check existing tags')
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'tag={tag}\n')
+
+  release:
+    name: Create tag and release
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Check out release commit
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build release package
+        env:
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          mkdir -p .tmp
+          git archive --format=zip \
+            --output=".tmp/br-cpu-extension-${RELEASE_TAG}.zip" \
+            HEAD -- \
+            br-cpu-extension extension.xml LICENSE
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          package=".tmp/br-cpu-extension-${RELEASE_TAG}.zip"
+          # Listing releases also finds drafts left behind by interrupted uploads.
+          gh api --paginate --slurp "repos/${GH_REPO}/releases?per_page=100" \
+            > .tmp/releases.json
+          jq -c --arg tag "$RELEASE_TAG" \
+            '[.[][] | select(.tag_name == $tag)] |
+            if length > 1 then error("Multiple releases for the same tag")
+            else .[0] // empty end' .tmp/releases.json > .tmp/release.json
+
+          if [ -s .tmp/release.json ]; then
+            is_draft=$(jq -r '.draft' .tmp/release.json)
+            if [ "$is_draft" = "true" ]; then
+              draft_target=$(jq -r '.target_commitish' .tmp/release.json)
+              if [ "$draft_target" != "$RELEASE_SHA" ]; then
+                echo "Release draft targets a different or ambiguous commit." >&2
+                exit 1
+              fi
+            fi
+            asset_state=$(jq -r --arg name "$(basename "$package")" \
+              '.assets[] | select(.name == $name) | .state' .tmp/release.json)
+            if [ "$asset_state" = "uploaded" ]; then
+              echo "Release package is already uploaded; nothing to do."
+            elif [ -n "$asset_state" ]; then
+              # Replace an incomplete upload left behind by a failed attempt.
+              gh release upload "$RELEASE_TAG" "$package" --clobber
+            else
+              gh release upload "$RELEASE_TAG" "$package"
+            fi
+            if [ "$is_draft" = "true" ]; then
+              gh release edit "$RELEASE_TAG" --draft=false
+            fi
+          else
+            gh release create "$RELEASE_TAG" "$package" \
+              --target "$RELEASE_SHA" \
+              --title "$RELEASE_TAG" \
+              --generate-notes
+          fi
