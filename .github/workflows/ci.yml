@@ -14,7 +14,7 @@ jobs:
   select_checks:
     name: Select PR checks
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     outputs:
       gitleaks: ${{ steps.select.outputs.gitleaks }}
@@ -44,7 +44,7 @@ jobs:
       (github.event_name == 'push' ||
       (needs.select_checks.result == 'success' &&
       needs.select_checks.outputs.gitleaks == 'true'))
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - name: Check out repository
@@ -64,7 +64,7 @@ jobs:
     name: PHP tests and XSD validation
     needs: select_checks
     if: needs.select_checks.outputs.php_tests == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - name: Check out repository
@@ -97,7 +97,7 @@ jobs:
     name: Validate release branch
     needs: select_checks
     if: needs.select_checks.outputs.release_metadata == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
       - name: Check out repository
@@ -130,7 +130,7 @@ jobs:
     name: PR checks
     needs: [select_checks, gitleaks, php_tests, release_metadata]
     if: always() && github.event_name == 'pull_request' && github.base_ref == 'main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
       - name: Verify selected checks
