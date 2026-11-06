@@ -36,6 +36,10 @@ Treat MUST and MUST NOT as mandatory requirements.
   commit on or push directly to `main`.
 - You MUST format branch names as `<type>/<description>` using lower-case
   letters, digits, and hyphens in the description.
+- For release preparation, you MUST instead use `release/<version>`, where
+  `<version>` is the target version in `X.Y.Z` format without a `v` prefix,
+  for example `release/3.2.3`. This is an explicit exception to the description
+  format above. You MUST NOT use `build/` or `chore/` for release preparation.
 - You MUST select exactly one prefix according to the primary task outcome:
 
   | Prefix | Primary outcome |
@@ -48,9 +52,11 @@ Treat MUST and MUST NOT as mandatory requirements.
   | `perf/` | Performance improvement |
   | `test/` | Test coverage or validation behavior |
   | `build/` | Dependencies, packaging, or build tooling |
+  | `release/` | Prepare a specific release version and its metadata |
   | `chore/` | Maintenance that fits none of the preceding outcomes |
 
-- You MUST make the description identify the affected project capability or
+- For branches other than `release/<version>`, you MUST make the description
+  identify the affected project capability or
   tooling, for example `fix/cpu-core-calculation` or `ci/release-packaging`.
 - You MUST NOT use generic descriptions such as `updates`, `changes`, or `work`.
 
@@ -96,3 +102,9 @@ Treat MUST and MUST NOT as mandatory requirements.
 - You MUST update the title and description if the final change scope changes.
 - You MUST NOT merge a pull request without explicit user authorization or bypass
   the required `PR checks` completion check.
+- Before requesting or executing a merge of a same-repository `release/X.Y.Z`
+  pull request into `main`, you MUST state that merging automatically publishes
+  the release tag, ZIP package, and GitHub Release. You MUST ensure the branch
+  version matches the manifest and module versions and the required PR checks
+  have succeeded. You MUST treat authorization to merge that release PR as
+  authorization for its automatic publication.
