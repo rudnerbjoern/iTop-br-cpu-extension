@@ -141,6 +141,7 @@ jobs:
         run: |
           mkdir -p .tmp
           git archive --format=zip \
+            --prefix=br-cpu-extension/ \
             --output=".tmp/br-cpu-extension-${RELEASE_TAG}.zip" \
             HEAD -- \
             br-cpu-extension extension.xml LICENSE
